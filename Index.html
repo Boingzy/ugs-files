@@ -3,1004 +3,669 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>CalcSolver</title>
 
 <style>
-    * {
-        box-sizing: border-box;
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    color: #eef7ff;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(30, 130, 255, .18), transparent 30%),
+        radial-gradient(circle at 80% 80%, rgba(0, 190, 255, .13), transparent 28%),
+        linear-gradient(135deg, #020914 0%, #06172c 48%, #020811 100%);
+    overflow-x: hidden;
+}
+
+/* Animated stars */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .65;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,.8) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(80,180,255,.55) 1px, transparent 1.5px);
+    background-size: 73px 73px, 117px 117px;
+    background-position: 8px 17px, 41px 64px;
+    animation: stars 7s ease-in-out infinite alternate;
+}
+
+@keyframes stars {
+    from {
+        opacity: .35;
+        transform: scale(1);
     }
 
-    html {
-        scroll-behavior: smooth;
+    to {
+        opacity: .75;
+        transform: scale(1.015);
+    }
+}
+
+.screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 18px;
+    position: relative;
+    z-index: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================================
+   CALCULATOR SCREEN
+========================================= */
+
+#calcScreen {
+    flex-direction: column;
+}
+
+.brand {
+    font-family: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(46px, 8vw, 82px);
+    letter-spacing: -3px;
+    color: #1597ff;
+    text-shadow:
+        0 0 10px rgba(21,151,255,.55),
+        0 0 30px rgba(21,151,255,.28);
+    margin-bottom: 22px;
+    text-align: center;
+}
+
+.calculator {
+    width: min(430px, 96vw);
+    padding: 18px;
+    border: 1px solid rgba(67,173,255,.42);
+    border-radius: 26px;
+    background: rgba(3,14,28,.9);
+    box-shadow:
+        0 0 30px rgba(0,125,255,.16),
+        inset 0 0 25px rgba(0,125,255,.05);
+    backdrop-filter: blur(8px);
+}
+
+.display {
+    width: 100%;
+    height: 92px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(80,180,255,.3);
+    border-radius: 16px;
+    background: #010812;
+    color: #dff3ff;
+    padding: 14px 16px;
+    font-size: clamp(24px, 6vw, 34px);
+    text-align: right;
+    outline: none;
+}
+
+.display:focus {
+    border-color: #1597ff;
+    box-shadow: 0 0 12px rgba(21,151,255,.25);
+}
+
+.keys {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 9px;
+}
+
+.key {
+    min-height: 58px;
+    border: 1px solid rgba(77,173,255,.25);
+    border-radius: 14px;
+    background: linear-gradient(145deg,#0a2945,#06192d);
+    color: #eaf7ff;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        transform .12s,
+        box-shadow .12s,
+        border-color .12s,
+        background .12s;
+}
+
+.key:hover {
+    border-color: rgba(64,177,255,.65);
+    box-shadow: 0 0 12px rgba(21,151,255,.18);
+}
+
+.key:active {
+    transform: scale(.95);
+}
+
+.key.op {
+    background: linear-gradient(145deg,#0c3a61,#08223a);
+    color: #7fcaff;
+}
+
+.key.eq {
+    background: linear-gradient(145deg,#087bd1,#07569b);
+    color: white;
+}
+
+.key.danger {
+    color: #ffb4b4;
+}
+
+.hint {
+    margin: 13px 0 0;
+    text-align: center;
+    color: #7190a9;
+    font-size: 12px;
+}
+
+/* =========================================
+   GAMES SCREEN
+========================================= */
+
+#gamesScreen {
+    display: block;
+    padding: 18px 20px 40px;
+}
+
+.gamesTop {
+    max-width: 1400px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.gamesBrand {
+    font-family: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif;
+    font-weight: 900;
+    font-size: 34px;
+    color: #1597ff;
+    text-shadow: 0 0 10px rgba(21,151,255,.4);
+    white-space: nowrap;
+}
+
+.searchWrap {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+}
+
+#gameSearch {
+    width: 100%;
+    height: 50px;
+    border-radius: 15px;
+    border: 1px solid rgba(73,174,255,.35);
+    background: rgba(2,13,27,.88);
+    color: white;
+    padding: 0 17px;
+    font-size: 17px;
+    outline: none;
+}
+
+#gameSearch:focus {
+    border-color: #1597ff;
+    box-shadow: 0 0 15px rgba(21,151,255,.18);
+}
+
+.calcBtn {
+    height: 50px;
+    padding: 0 20px;
+    border: 1px solid rgba(80,185,255,.45);
+    border-radius: 15px;
+    background: #082b49;
+    color: #9fdcff;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.calcBtn:hover {
+    background: #0b3c63;
+    color: white;
+}
+
+/* Game layout */
+
+.gamesLayout {
+    max-width: 1400px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 18px;
+}
+
+/* Letter sidebar */
+
+.alphabet {
+    position: sticky;
+    top: 15px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 5px;
+    border: 1px solid rgba(73,174,255,.28);
+    border-radius: 16px;
+    background: rgba(2,13,27,.78);
+    max-height: calc(100vh - 30px);
+    overflow: auto;
+}
+
+.letter {
+    width: 46px;
+    height: 34px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #8faec6;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.letter:hover,
+.letter.active {
+    background: #0b4775;
+    color: white;
+    box-shadow: 0 0 10px rgba(21,151,255,.18);
+}
+
+/* Games header */
+
+.gamesHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 12px;
+}
+
+.gamesHeader h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #bfe5ff;
+}
+
+#gameCount {
+    color: #66859e;
+    font-size: 13px;
+}
+
+/* Game grid */
+
+.gameGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+    gap: 11px;
+}
+
+.gameCard {
+    min-height: 62px;
+    text-align: left;
+    padding: 12px 14px;
+    border-radius: 13px;
+    border: 1px solid rgba(73,174,255,.2);
+    background: rgba(5,25,45,.84);
+    color: #eaf7ff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.gameCard:hover {
+    border-color: #1597ff;
+    box-shadow: 0 0 16px rgba(21,151,255,.15);
+    background: #092b48;
+}
+
+.empty {
+    padding: 35px;
+    text-align: center;
+    color: #7793a8;
+}
+
+/* =========================================
+   GAME VIEWER
+========================================= */
+
+#gameViewer {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: #010711;
+    display: none;
+    flex-direction: column;
+}
+
+#gameViewer.open {
+    display: flex;
+}
+
+.viewerBar {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: #061a2d;
+    border-bottom: 1px solid #16466b;
+}
+
+.viewerBar button {
+    height: 38px;
+    padding: 0 13px;
+    border: 1px solid #1c5a86;
+    border-radius: 9px;
+    background: #082944;
+    color: #dff4ff;
+    cursor: pointer;
+}
+
+.viewerTitle {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #9fdcff;
+    font-weight: 700;
+}
+
+#gameFrame {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: white;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media(max-width:650px) {
+
+    .gamesTop {
+        flex-wrap: wrap;
     }
 
-    body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: Arial, Helvetica, sans-serif;
-        color: white;
-        overflow-x: hidden;
-
-        background:
-            radial-gradient(circle at 20% 20%, rgba(0, 140, 255, 0.25), transparent 30%),
-            radial-gradient(circle at 80% 80%, rgba(0, 80, 255, 0.20), transparent 35%),
-            linear-gradient(135deg, #020817, #061a35 45%, #03152c);
-    }
-
-    /* =========================================
-       ANIMATED BACKGROUND
-    ========================================= */
-
-    body::before {
-        content: "";
-        position: fixed;
-        inset: -50%;
-        z-index: -2;
-
-        background:
-            radial-gradient(circle, rgba(0, 153, 255, 0.13) 1px, transparent 2px);
-
-        background-size: 70px 70px;
-
-        animation: starsMove 30s linear infinite;
-        pointer-events: none;
-    }
-
-    body::after {
-        content: "";
-        position: fixed;
-        width: 500px;
-        height: 500px;
-        left: 50%;
-        top: 35%;
-
-        transform: translate(-50%, -50%);
-
-        background: radial-gradient(
-            circle,
-            rgba(0, 132, 255, 0.13),
-            transparent 70%
-        );
-
-        filter: blur(20px);
-        animation: glowPulse 6s ease-in-out infinite;
-
-        z-index: -1;
-        pointer-events: none;
-    }
-
-    @keyframes starsMove {
-        from {
-            transform: translate(0, 0);
-        }
-
-        to {
-            transform: translate(70px, 70px);
-        }
-    }
-
-    @keyframes glowPulse {
-        0%, 100% {
-            opacity: 0.5;
-            transform: translate(-50%, -50%) scale(0.9);
-        }
-
-        50% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1.15);
-        }
-    }
-
-    /* =========================================
-       TOP BAR
-    ========================================= */
-
-    .topbar {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-
-        height: 68px;
-
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        padding: 0 24px;
-
-        background: rgba(2, 10, 25, 0.78);
-        border-bottom: 1px solid rgba(72, 174, 255, 0.18);
-
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-
-        box-shadow:
-            0 5px 30px rgba(0, 0, 0, 0.25);
-    }
-
-    .brand-small {
-        font-size: 21px;
-        font-weight: 900;
-
-        color: #55baff;
-
-        text-shadow:
-            0 0 8px rgba(50, 180, 255, 0.7),
-            0 0 25px rgba(0, 110, 255, 0.35);
-    }
-
-    .top-buttons {
-        display: flex;
-        gap: 10px;
-    }
-
-    .top-btn {
-        border: 1px solid rgba(82, 188, 255, 0.25);
-
-        background: rgba(20, 100, 170, 0.22);
-
-        color: white;
-
-        padding: 9px 15px;
-
-        border-radius: 10px;
-
-        cursor: pointer;
-
-        transition:
-            transform 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .top-btn:hover {
-        transform: translateY(-2px);
-
-        background: rgba(30, 140, 220, 0.35);
-
-        box-shadow:
-            0 0 15px rgba(0, 153, 255, 0.25);
-    }
-
-    /* =========================================
-       MAIN
-    ========================================= */
-
-    .container {
-        width: min(1200px, 94%);
-        margin: auto;
-        padding: 45px 0 80px;
-    }
-
-    /* =========================================
-       CALCSOLVER TITLE
-    ========================================= */
-
-    .title-area {
-        text-align: center;
-        margin-bottom: 35px;
-
-        animation: titleAppear 0.8s ease;
-    }
-
-    @keyframes titleAppear {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .main-title {
-        margin: 0;
-
-        font-family: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif;
-
-        font-size: clamp(48px, 9vw, 92px);
-
-        font-weight: 900;
-
-        letter-spacing: -4px;
-
-        color: #67c7ff;
-
-        text-shadow:
-            0 0 5px rgba(95, 200, 255, 0.8),
-            0 0 18px rgba(0, 145, 255, 0.65),
-            0 0 45px rgba(0, 80, 255, 0.35);
-
-        animation: titleGlow 4s ease-in-out infinite;
-    }
-
-    @keyframes titleGlow {
-        0%, 100% {
-            text-shadow:
-                0 0 5px rgba(95, 200, 255, 0.8),
-                0 0 18px rgba(0, 145, 255, 0.65),
-                0 0 45px rgba(0, 80, 255, 0.35);
-        }
-
-        50% {
-            text-shadow:
-                0 0 8px rgba(120, 220, 255, 1),
-                0 0 30px rgba(0, 155, 255, 0.85),
-                0 0 65px rgba(0, 80, 255, 0.5);
-        }
-    }
-
-    .subtitle {
-        margin-top: 8px;
-        color: rgba(220, 242, 255, 0.65);
-        font-size: 15px;
-        letter-spacing: 1px;
-    }
-
-    /* =========================================
-       CALCULATOR
-    ========================================= */
-
-    .calculator-card {
-        width: min(440px, 100%);
-        margin: 0 auto 55px;
-
-        padding: 18px;
-
-        border-radius: 24px;
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(17, 45, 78, 0.9),
-                rgba(4, 17, 37, 0.92)
-            );
-
-        border: 1px solid rgba(83, 193, 255, 0.25);
-
-        box-shadow:
-            0 20px 70px rgba(0, 0, 0, 0.35),
-            0 0 30px rgba(0, 125, 255, 0.08);
-
-        backdrop-filter: blur(18px);
-
-        animation: cardFloat 6s ease-in-out infinite;
-    }
-
-    @keyframes cardFloat {
-        0%, 100% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-4px);
-        }
-    }
-
-    .calculator-label {
-        text-align: center;
-
-        font-size: 14px;
-        font-weight: bold;
-
-        color: #69c9ff;
-
-        margin-bottom: 12px;
-
-        letter-spacing: 1px;
-    }
-
-    .calculator-display {
+    .gamesBrand {
         width: 100%;
-
-        height: 72px;
-
-        border: 1px solid rgba(90, 195, 255, 0.3);
-
-        border-radius: 12px;
-
-        background: #020a15;
-
-        color: #8bd7ff;
-
-        font-size: 29px;
-
-        padding: 10px 14px;
-
-        text-align: right;
-
-        outline: none;
-
-        box-shadow:
-            inset 0 0 20px rgba(0, 100, 200, 0.12);
-
-        margin-bottom: 12px;
-    }
-
-    .calculator-grid {
-        display: grid;
-
-        grid-template-columns: repeat(5, 1fr);
-
-        gap: 8px;
-    }
-
-    .calc-btn {
-        height: 54px;
-
-        border: 1px solid rgba(86, 184, 255, 0.16);
-
-        border-radius: 10px;
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(27, 69, 105, 0.9),
-                rgba(10, 35, 60, 0.95)
-            );
-
-        color: white;
-
-        font-size: 17px;
-        font-weight: bold;
-
-        cursor: pointer;
-
-        transition:
-            transform 0.12s ease,
-            background 0.15s ease,
-            box-shadow 0.15s ease;
-    }
-
-    .calc-btn:hover {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(37, 112, 170, 0.95),
-                rgba(13, 55, 95, 0.95)
-            );
-
-        box-shadow:
-            0 0 14px rgba(0, 150, 255, 0.22);
-    }
-
-    .calc-btn:active {
-        transform: scale(0.94);
-    }
-
-    .calc-blue {
-        background: rgba(0, 119, 204, 0.55);
-    }
-
-    .calc-equals {
-        background: linear-gradient(
-            145deg,
-            #008fe8,
-            #0062b3
-        );
-    }
-
-    .calc-wide {
-        grid-column: span 2;
-    }
-
-    /* =========================================
-       GAMES SECTION
-    ========================================= */
-
-    .games-heading {
         text-align: center;
-        margin-bottom: 20px;
     }
 
-    .games-heading h2 {
-        margin: 0;
-
-        font-size: 34px;
-
-        color: white;
-
-        text-shadow:
-            0 0 15px rgba(0, 150, 255, 0.35);
-    }
-
-    .games-heading p {
-        margin: 8px 0 25px;
-
-        color: rgba(220, 240, 255, 0.6);
-    }
-
-    /* =========================================
-       SEARCH
-    ========================================= */
-
-    .search-wrapper {
-        max-width: 650px;
-        margin: 0 auto 30px;
-
-        position: relative;
-    }
-
-    #gameSearch {
+    .searchWrap {
+        order: 2;
         width: 100%;
-
-        padding: 16px 20px;
-
-        border-radius: 15px;
-
-        border: 1px solid rgba(82, 185, 255, 0.3);
-
-        outline: none;
-
-        background: rgba(4, 20, 40, 0.82);
-
-        color: white;
-
-        font-size: 16px;
-
-        box-shadow:
-            0 10px 35px rgba(0, 0, 0, 0.22);
-
-        backdrop-filter: blur(10px);
-
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
     }
 
-    #gameSearch::placeholder {
-        color: rgba(220, 240, 255, 0.45);
+    .calcBtn {
+        order: 3;
     }
 
-    #gameSearch:focus {
-        border-color: rgba(78, 190, 255, 0.65);
-
-        box-shadow:
-            0 0 25px rgba(0, 145, 255, 0.18);
+    .gamesLayout {
+        grid-template-columns: 46px 1fr;
+        gap: 9px;
     }
 
-    /* =========================================
-       GAME GRID
-    ========================================= */
-
-    #gameGrid {
-        display: grid;
-
-        grid-template-columns:
-            repeat(auto-fill, minmax(220px, 1fr));
-
-        gap: 13px;
+    .alphabet {
+        padding: 5px 2px;
     }
 
-    .game-card {
-        min-height: 64px;
-
-        padding: 16px 18px;
-
-        display: flex;
-        align-items: center;
-
-        border-radius: 14px;
-
-        border: 1px solid rgba(82, 182, 255, 0.15);
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(16, 48, 78, 0.82),
-                rgba(5, 22, 43, 0.9)
-            );
-
-        color: white;
-
-        cursor: pointer;
-
-        text-align: left;
-
-        font-size: 15px;
-        font-weight: 600;
-
-        box-shadow:
-            0 8px 25px rgba(0, 0, 0, 0.18);
-
-        transition:
-            transform 0.2s ease,
-            border-color 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
-
-        animation: gameAppear 0.35s ease both;
+    .letter {
+        width: 38px;
+        height: 32px;
     }
 
-    @keyframes gameAppear {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .gameGrid {
+        grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
     }
-
-    .game-card:hover {
-        transform: translateY(-4px);
-
-        border-color: rgba(72, 191, 255, 0.55);
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(21, 81, 130, 0.9),
-                rgba(7, 35, 68, 0.95)
-            );
-
-        box-shadow:
-            0 12px 30px rgba(0, 0, 0, 0.28),
-            0 0 20px rgba(0, 145, 255, 0.13);
-    }
-
-    .game-number {
-        min-width: 28px;
-        height: 28px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        margin-right: 12px;
-
-        border-radius: 8px;
-
-        background: rgba(0, 145, 255, 0.15);
-
-        color: #6bcaff;
-
-        font-size: 12px;
-    }
-
-    /* =========================================
-       LOADING / EMPTY
-    ========================================= */
-
-    .status {
-        text-align: center;
-
-        color: rgba(220, 240, 255, 0.65);
-
-        padding: 30px;
-    }
-
-    .loader {
-        width: 34px;
-        height: 34px;
-
-        margin: 0 auto 15px;
-
-        border-radius: 50%;
-
-        border: 3px solid rgba(100, 200, 255, 0.15);
-
-        border-top-color: #50bdff;
-
-        animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* =========================================
-       GAME WINDOW
-    ========================================= */
-
-    #gameViewer {
-        position: fixed;
-        inset: 0;
-
-        z-index: 5000;
-
-        display: none;
-        flex-direction: column;
-
-        background: #020712;
-    }
-
-    #gameViewer.active {
-        display: flex;
-    }
-
-    .game-toolbar {
-        height: 58px;
-
-        flex-shrink: 0;
-
-        display: flex;
-        align-items: center;
-
-        gap: 8px;
-
-        padding: 8px 12px;
-
-        background: rgba(2, 12, 28, 0.96);
-
-        border-bottom: 1px solid rgba(70, 180, 255, 0.2);
-    }
-
-    .game-toolbar-title {
-        flex: 1;
-
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        color: #83d4ff;
-
-        font-weight: bold;
-
-        padding-left: 8px;
-    }
-
-    .viewer-btn {
-        border: 1px solid rgba(85, 190, 255, 0.2);
-
-        background: rgba(18, 66, 105, 0.6);
-
-        color: white;
-
-        border-radius: 8px;
-
-        padding: 8px 12px;
-
-        cursor: pointer;
-
-        transition: 0.2s;
-    }
-
-    .viewer-btn:hover {
-        background: rgba(30, 120, 190, 0.7);
-    }
-
-    #gameFrame {
-        flex: 1;
-
-        width: 100%;
-
-        border: none;
-
-        background: black;
-    }
-
-    /* =========================================
-       MOBILE
-    ========================================= */
-
-    @media (max-width: 600px) {
-
-        .topbar {
-            padding: 0 12px;
-        }
-
-        .top-buttons {
-            gap: 5px;
-        }
-
-        .top-btn {
-            padding: 8px 9px;
-            font-size: 12px;
-        }
-
-        .container {
-            width: 94%;
-            padding-top: 30px;
-        }
-
-        .main-title {
-            font-size: 58px;
-            letter-spacing: -3px;
-        }
-
-        #gameGrid {
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-        }
-
-        .game-card {
-            min-height: 60px;
-            padding: 12px;
-            font-size: 13px;
-        }
-
-        .calculator-grid {
-            gap: 5px;
-        }
-
-        .calc-btn {
-            height: 48px;
-            font-size: 14px;
-        }
-    }
+}
 </style>
 </head>
 
 <body>
 
 <!-- =========================================
-     TOP BAR
+     CALCULATOR
 ========================================= -->
 
-<header class="topbar">
+<section id="calcScreen" class="screen">
 
-    <div class="brand-small">
+    <div class="brand">
         CalcSolver
     </div>
 
-    <div class="top-buttons">
+    <div class="calculator">
 
-        <button class="top-btn" onclick="scrollToCalculator()">
-            Calculator
-        </button>
+        <input
+            id="display"
+            class="display"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Calculator display"
+        >
 
-        <button class="top-btn" onclick="scrollToGames()">
-            Games
-        </button>
+        <div class="keys">
+
+            <button class="key danger" data-action="clear">
+                AC
+            </button>
+
+            <button class="key danger" data-action="delete">
+                DEL
+            </button>
+
+            <button class="key" data-value="(">
+                (
+            </button>
+
+            <button class="key" data-value=")">
+                )
+            </button>
+
+            <button class="key op" data-value="/">
+                ÷
+            </button>
+
+
+            <button class="key op" data-value="sin(">
+                sin
+            </button>
+
+            <button class="key op" data-value="cos(">
+                cos
+            </button>
+
+            <button class="key op" data-value="tan(">
+                tan
+            </button>
+
+            <button class="key op" data-value="sqrt(">
+                √
+            </button>
+
+            <button class="key op" data-value="*">
+                ×
+            </button>
+
+
+            <button class="key" data-value="7">
+                7
+            </button>
+
+            <button class="key" data-value="8">
+                8
+            </button>
+
+            <button class="key" data-value="9">
+                9
+            </button>
+
+            <button class="key op" data-value="^">
+                xʸ
+            </button>
+
+            <button class="key op" data-value="-">
+                −
+            </button>
+
+
+            <button class="key" data-value="4">
+                4
+            </button>
+
+            <button class="key" data-value="5">
+                5
+            </button>
+
+            <button class="key" data-value="6">
+                6
+            </button>
+
+            <button class="key op" data-value="log(">
+                log
+            </button>
+
+            <button class="key op" data-value="+">
+                +
+            </button>
+
+
+            <button class="key" data-value="1">
+                1
+            </button>
+
+            <button class="key" data-value="2">
+                2
+            </button>
+
+            <button class="key" data-value="3">
+                3
+            </button>
+
+            <button class="key op" data-value="π">
+                π
+            </button>
+
+            <button class="key eq" data-action="equals">
+                =
+            </button>
+
+
+            <button class="key" data-value="0">
+                0
+            </button>
+
+            <button class="key" data-value=".">
+                .
+            </button>
+
+            <button class="key op" data-value="ln(">
+                ln
+            </button>
+
+            <button class="key op" data-value="abs(">
+                abs
+            </button>
+
+            <button class="key" data-value="00">
+                00
+            </button>
+
+        </div>
+
+        <div class="hint">
+            Calculator mode • Press 0 seven times quickly to unlock Games
+        </div>
 
     </div>
 
-</header>
+</section>
 
 
 <!-- =========================================
-     MAIN CONTENT
+     GAMES
 ========================================= -->
 
-<main class="container">
+<section id="gamesScreen" class="hidden">
 
-    <!-- TITLE -->
+    <div class="gamesTop">
 
-    <section class="title-area">
-
-        <h1 class="main-title">
+        <div class="gamesBrand">
             CalcSolver
-        </h1>
-
-        <div class="subtitle">
-            Calculator • Games • More
         </div>
 
-    </section>
-
-
-    <!-- =====================================
-         CALCULATOR
-    ====================================== -->
-
-    <section id="calculatorSection">
-
-        <div class="calculator-card">
-
-            <div class="calculator-label">
-                SCIENTIFIC CALCULATOR
-            </div>
-
-            <input
-                id="calculatorDisplay"
-                class="calculator-display"
-                type="text"
-                value="0"
-                readonly
-            >
-
-            <div class="calculator-grid">
-
-                <button class="calc-btn calc-blue"
-                    onclick="calculatorClear()">
-                    AC
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorBackspace()">
-                    DEL
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('(')">
-                    (
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput(')')">
-                    )
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('/')">
-                    ÷
-                </button>
-
-
-                <button class="calc-btn"
-                    onclick="calculatorFunction('sin')">
-                    sin
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorFunction('cos')">
-                    cos
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorFunction('tan')">
-                    tan
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorFunction('sqrt')">
-                    √
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('*')">
-                    ×
-                </button>
-
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('7')">
-                    7
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('8')">
-                    8
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('9')">
-                    9
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('^')">
-                    ^
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('-')">
-                    −
-                </button>
-
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('4')">
-                    4
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('5')">
-                    5
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('6')">
-                    6
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorFunction('log')">
-                    log
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('+')">
-                    +
-                </button>
-
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('1')">
-                    1
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('2')">
-                    2
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('3')">
-                    3
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('Math.PI')">
-                    π
-                </button>
-
-                <button class="calc-btn calc-equals"
-                    onclick="calculatorEquals()">
-                    =
-                </button>
-
-
-                <button class="calc-btn calc-wide"
-                    onclick="calculatorInput('0')">
-                    0
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorInput('.')">
-                    .
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorFunction('ln')">
-                    ln
-                </button>
-
-                <button class="calc-btn"
-                    onclick="calculatorFunction('abs')">
-                    abs
-                </button>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================
-         GAMES
-    ====================================== -->
-
-    <section id="gamesSection">
-
-        <div class="games-heading">
-
-            <h2>
-                Games
-            </h2>
-
-            <p>
-                Choose a game to launch it
-            </p>
-
-        </div>
-
-
-        <div class="search-wrapper">
+        <div class="searchWrap">
 
             <input
                 id="gameSearch"
-                type="text"
+                type="search"
                 placeholder="Search games..."
                 autocomplete="off"
             >
 
         </div>
 
+        <button
+            id="calcBtn"
+            class="calcBtn"
+            type="button"
+        >
+            CALC
+        </button>
 
-        <div id="gameStatus" class="status">
-
-            <div class="loader"></div>
-
-            Loading games...
-
-        </div>
+    </div>
 
 
-        <div id="gameGrid"></div>
+    <div class="gamesLayout">
 
-    </section>
+        <!-- 1-9 / A-Z SIDEBAR -->
 
-</main>
+        <nav
+            id="alphabet"
+            class="alphabet"
+            aria-label="Game index"
+        >
+        </nav>
+
+
+        <main>
+
+            <div class="gamesHeader">
+
+                <h2>
+                    Games
+                </h2>
+
+                <span id="gameCount">
+                    Loading...
+                </span>
+
+            </div>
+
+            <div
+                id="gameGrid"
+                class="gameGrid"
+            >
+            </div>
+
+        </main>
+
+    </div>
+
+</section>
 
 
 <!-- =========================================
@@ -1009,43 +674,48 @@
 
 <div id="gameViewer">
 
-    <div class="game-toolbar">
+    <div class="viewerBar">
 
         <button
-            class="viewer-btn"
-            onclick="closeGame()">
+            id="viewerBack"
+            type="button"
+        >
             ← Back
         </button>
 
         <button
-            class="viewer-btn"
-            onclick="reloadGame()">
-            ↻
+            id="viewerReload"
+            type="button"
+        >
+            Reload
         </button>
 
-        <div
-            id="gameViewerTitle"
-            class="game-toolbar-title">
-            Game
-        </div>
-
         <button
-            class="viewer-btn"
-            onclick="openGameNewTab()">
+            id="viewerNewTab"
+            type="button"
+        >
             New Tab
         </button>
 
         <button
-            class="viewer-btn"
-            onclick="fullscreenGame()">
-            ⛶
+            id="viewerFullscreen"
+            type="button"
+        >
+            Fullscreen
         </button>
+
+        <div
+            id="viewerTitle"
+            class="viewerTitle"
+        >
+        </div>
 
     </div>
 
     <iframe
         id="gameFrame"
-        allowfullscreen>
+        title="Game"
+    >
     </iframe>
 
 </div>
@@ -1053,903 +723,884 @@
 
 <script>
 
-/* =========================================================
-   CALCULATOR
-========================================================= */
+(() => {
 
-const calculatorDisplay =
-    document.getElementById("calculatorDisplay");
-
-let calculatorExpression = "";
+    "use strict";
 
 
-function updateCalculator() {
+    /* =========================================
+       ELEMENTS
+    ========================================= */
 
-    if (calculatorExpression === "") {
-        calculatorDisplay.value = "0";
-    } else {
-        calculatorDisplay.value =
-            calculatorExpression;
-    }
+    const calcScreen =
+        document.getElementById("calcScreen");
 
-}
+    const gamesScreen =
+        document.getElementById("gamesScreen");
 
+    const display =
+        document.getElementById("display");
 
-function calculatorInput(value) {
+    const gameSearch =
+        document.getElementById("gameSearch");
 
-    if (
-        calculatorExpression === "Error" ||
-        calculatorExpression === "Undefined"
-    ) {
-        calculatorExpression = "";
-    }
+    const gameGrid =
+        document.getElementById("gameGrid");
 
-    calculatorExpression += value;
+    const gameCount =
+        document.getElementById("gameCount");
 
-    updateCalculator();
-}
+    const alphabet =
+        document.getElementById("alphabet");
 
+    const calcBtn =
+        document.getElementById("calcBtn");
 
-function calculatorClear() {
+    const viewer =
+        document.getElementById("gameViewer");
 
-    calculatorExpression = "";
+    const gameFrame =
+        document.getElementById("gameFrame");
 
-    updateCalculator();
-}
-
-
-function calculatorBackspace() {
-
-    calculatorExpression =
-        calculatorExpression.slice(0, -1);
-
-    updateCalculator();
-}
+    const viewerTitle =
+        document.getElementById("viewerTitle");
 
 
-function calculatorFunction(functionName) {
+    let allGames = [];
 
-    if (
-        calculatorExpression === "Error" ||
-        calculatorExpression === "Undefined"
-    ) {
-        calculatorExpression = "";
-    }
+    let currentGames = [];
 
-    if (functionName === "sin") {
-        calculatorExpression =
-            "sin(" + calculatorExpression + ")";
-    }
+    let currentLetter = "ALL";
 
-    else if (functionName === "cos") {
-        calculatorExpression =
-            "cos(" + calculatorExpression + ")";
-    }
-
-    else if (functionName === "tan") {
-        calculatorExpression =
-            "tan(" + calculatorExpression + ")";
-    }
-
-    else if (functionName === "sqrt") {
-        calculatorExpression =
-            "sqrt(" + calculatorExpression + ")";
-    }
-
-    else if (functionName === "log") {
-        calculatorExpression =
-            "log(" + calculatorExpression + ")";
-    }
-
-    else if (functionName === "ln") {
-        calculatorExpression =
-            "ln(" + calculatorExpression + ")";
-    }
-
-    else if (functionName === "abs") {
-        calculatorExpression =
-            "abs(" + calculatorExpression + ")";
-    }
-
-    updateCalculator();
-}
+    let zeroTimes = [];
 
 
-function calculatorEquals() {
+    /* =========================================
+       SPECIAL GAME NAMES
+    ========================================= */
 
-    try {
+    const nameOverrides = {
 
-        let expression =
-            calculatorExpression;
+        "cl2048.html":
+            "2048",
 
-        expression =
-            expression.replace(
-                /×/g,
-                "*"
-            );
+        "cl2048cupcakes.html":
+            "2048 Cupcakes",
 
-        expression =
-            expression.replace(
-                /÷/g,
-                "/"
-            );
+        "cl8ballpool.html":
+            "8 Ball Pool",
 
-        expression =
-            expression.replace(
-                /\^/g,
-                "**"
-            );
+        "clFIFA07.html":
+            "FIFA 07",
 
-        expression =
-            expression.replace(
-                /sin\(/g,
-                "Math.sin((Math.PI/180)*("
-            );
+        "clFIFA10.html":
+            "FIFA 10",
 
-        expression =
-            expression.replace(
-                /cos\(/g,
-                "Math.cos((Math.PI/180)*("
-            );
+        "clFIFA11.html":
+            "FIFA 11",
 
-        expression =
-            expression.replace(
-                /tan\(/g,
-                "Math.tan((Math.PI/180)*("
-            );
+        "clFIFA99.html":
+            "FIFA 99",
 
-        expression =
-            expression.replace(
-                /sqrt\(/g,
-                "Math.sqrt("
-            );
+        "clFNAF.html":
+            "Five Nights at Freddy's",
 
-        expression =
-            expression.replace(
-                /log\(/g,
-                "Math.log10("
-            );
+        "clFNAF2.html":
+            "Five Nights at Freddy's 2",
 
-        expression =
-            expression.replace(
-                /ln\(/g,
-                "Math.log("
-            );
+        "clFNAF3.html":
+            "Five Nights at Freddy's 3",
 
-        expression =
-            expression.replace(
-                /abs\(/g,
-                "Math.abs("
-            );
+        "clFNAF4.html":
+            "Five Nights at Freddy's 4",
 
-        /*
-            Basic safety check.
+        "clBTD1.html":
+            "Bloons Tower Defense",
 
-            Only allow characters/functions that
-            belong to our calculator.
-        */
+        "clNBAjam.html":
+            "NBA Jam",
 
-        if (
-            !/^[0-9+\-*/().,\s*MathPIa-zA-Z]+$/.test(
-                expression
-            )
-        ) {
+        "clPokemonemeraldrouge.html":
+            "Pokémon Emerald Rogue",
 
-            throw new Error("Invalid");
+        "clPokemonrocketedition.html":
+            "Pokémon Rocket Edition",
+
+        "clSonic2ScoreRush.html":
+            "Sonic 2 Score Rush",
+
+        "clSonicHellfireSaga.html":
+            "Sonic Hellfire Saga",
+
+        "clUltimatecardrivingsimulator.html":
+            "Ultimate Car Driving Simulator",
+
+        "Eaglercraft-Alpha-1.2.6-Offline.html":
+            "Eaglercraft Alpha 1.2.6",
+
+        "Eaglercraft-Beta-1.3-Offline.html":
+            "Eaglercraft Beta 1.3",
+
+        "Eaglercraft-Indev-Offline.html":
+            "Eaglercraft Indev",
+
+        "Eaglercraft-Indev-Offline (1).html":
+            "Eaglercraft Indev",
+
+        "EaglercraftL_1.9_v0_7_0_Offline_Signed.html":
+            "Eaglercraft 1.9",
+
+        "EaglercraftX 1.8.8(u29).html":
+            "EaglercraftX 1.8.8",
+
+        "EaglercraftZ_1.11.2.html":
+            "EaglercraftZ 1.11.2"
+
+    };
+
+
+    /* =========================================
+       GAME NAME CLEANUP
+    ========================================= */
+
+    function cleanGameName(filename) {
+
+        if (nameOverrides[filename]) {
+
+            return nameOverrides[filename];
 
         }
 
+        let name =
+            filename.replace(/\.html$/i, "");
 
-        const result =
-            Function(
-                '"use strict"; return (' +
-                expression +
-                ')'
-            )();
+        if (/^cl/i.test(name)) {
 
-
-        if (
-            typeof result !== "number" ||
-            !Number.isFinite(result)
-        ) {
-
-            calculatorExpression =
-                "Undefined";
-
-        } else {
-
-            calculatorExpression =
-                String(
-                    Math.round(
-                        result * 1000000000
-                    ) / 1000000000
-                );
+            name = name.slice(2);
 
         }
 
-    } catch (error) {
+        name =
+            name.replace(/[_-]+/g, " ");
 
-        calculatorExpression = "Error";
+        name =
+            name.replace(/([a-z])([A-Z])/g, "$1 $2");
 
-    }
+        name =
+            name.replace(/([A-Za-z])(\d)/g, "$1 $2");
 
-    updateCalculator();
-}
+        name =
+            name.replace(/(\d)([A-Za-z])/g, "$1 $2");
 
+        name =
+            name.replace(/\s+/g, " ").trim();
 
-/* Keyboard calculator controls */
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key >= "0" &&
-            event.key <= "9"
-        ) {
-
-            calculatorInput(event.key);
-
-        }
-
-        else if (
-            "+-*/().".includes(event.key)
-        ) {
-
-            calculatorInput(event.key);
-
-        }
-
-        else if (
-            event.key === "Enter" ||
-            event.key === "="
-        ) {
-
-            calculatorEquals();
-
-        }
-
-        else if (
-            event.key === "Backspace"
-        ) {
-
-            calculatorBackspace();
-
-        }
-
-        else if (
-            event.key === "Escape"
-        ) {
-
-            calculatorClear();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   GAME DATABASE
-========================================================= */
-
-let allGames = [];
-
-let filteredGames = [];
-
-let currentGameFile = "";
-
-
-/*
-    Names that are difficult to automatically determine
-    from filenames can be corrected here.
-
-    The actual filenames NEVER change.
-*/
-
-const nameOverrides = {
-
-    "cl2048.html":
-        "2048",
-
-    "cl2048cupcakes.html":
-        "2048 Cupcakes",
-
-    "cl8ballpool.html":
-        "8 Ball Pool",
-
-    "clFIFA07.html":
-        "FIFA 07",
-
-    "clFIFA10.html":
-        "FIFA 10",
-
-    "clFIFA11.html":
-        "FIFA 11",
-
-    "clFIFA99.html":
-        "FIFA 99",
-
-    "clFNAF.html":
-        "Five Nights at Freddy's",
-
-    "clFNAF2.html":
-        "Five Nights at Freddy's 2",
-
-    "clFNAF3.html":
-        "Five Nights at Freddy's 3",
-
-    "clFNAF4.html":
-        "Five Nights at Freddy's 4",
-
-    "clBTD1.html":
-        "Bloons Tower Defense",
-
-    "clNBAjam.html":
-        "NBA Jam",
-
-    "clPokemonemeraldrouge.html":
-        "Pokémon Emerald Rogue",
-
-    "clPokemonrocketedition.html":
-        "Pokémon Rocket Edition",
-
-    "clSonic2ScoreRush.html":
-        "Sonic 2 Score Rush",
-
-    "clSonicHellfireSaga.html":
-        "Sonic Hellfire Saga",
-
-    "clUltimatecardrivingsimulator.html":
-        "Ultimate Car Driving Simulator",
-
-    "Eaglercraft-Alpha-1.2.6-Offline.html":
-        "Eaglercraft Alpha 1.2.6",
-
-    "Eaglercraft-Beta-1.3-Offline.html":
-        "Eaglercraft Beta 1.3",
-
-    "Eaglercraft-Indev-Offline.html":
-        "Eaglercraft Indev",
-
-    "Eaglercraft-Indev-Offline (1).html":
-        "Eaglercraft Indev",
-
-    "EaglercraftX 1.8.8(u29).html":
-        "EaglercraftX 1.8.8",
-
-    "EaglercraftZ_1.11.2.html":
-        "EaglercraftZ 1.11.2",
-
-    "Minceraft-I-NotMine_V6.html":
-        "Minecraft I NotMine V6"
-
-};
-
-
-/* =========================================================
-   TURN FILE NAME INTO DISPLAY NAME
-========================================================= */
-
-function cleanGameName(filename) {
-
-    if (nameOverrides[filename]) {
-
-        return nameOverrides[filename];
-
-    }
-
-
-    let name =
-        filename
-            .replace(/\.html$/i, "")
-            .replace(/^cl/i, "");
-
-
-    /*
-        Replace separators with spaces.
-    */
-
-    name =
-        name.replace(/[_-]+/g, " ");
-
-
-    /*
-        Add spaces between camelCase words.
-    */
-
-    name =
-        name.replace(
-            /([a-z])([A-Z])/g,
-            "$1 $2"
+        return (
+            name.replace(/\b\w/g, c => c.toUpperCase())
+            || filename
         );
 
-
-    /*
-        Separate numbers from letters.
-    */
-
-    name =
-        name.replace(
-            /([A-Za-z])([0-9])/g,
-            "$1 $2"
-        );
-
-    name =
-        name.replace(
-            /([0-9])([A-Za-z])/g,
-            "$1 $2"
-        );
+    }
 
 
-    /*
-        Clean duplicate spaces.
-    */
+    /* =========================================
+       SWITCH TO CALCULATOR
+    ========================================= */
 
-    name =
-        name.replace(/\s+/g, " ")
-            .trim();
+    function showCalc() {
 
+        gamesScreen.classList.add("hidden");
 
-    /*
-        Capitalize words.
-    */
+        calcScreen.classList.remove("hidden");
 
-    name =
-        name
-            .split(" ")
-            .map(word => {
+        closeGame();
 
-                if (
-                    word.length <= 3 &&
-                    /^[A-Z0-9]+$/.test(word)
-                ) {
+        display.focus();
 
-                    return word;
-
-                }
-
-                return word.charAt(0).toUpperCase()
-                    + word.slice(1);
-
-            })
-            .join(" ");
+    }
 
 
-    return name || filename;
+    /* =========================================
+       SWITCH TO GAMES
+    ========================================= */
 
-}
+    function showGames() {
 
+        calcScreen.classList.add("hidden");
 
-/* =========================================================
-   LOAD ALL GAMES
-========================================================= */
+        gamesScreen.classList.remove("hidden");
 
-async function loadGames() {
-
-    const status =
-        document.getElementById("gameStatus");
-
-    try {
-
-        /*
-            allGames.txt is supplied in the ZIP.
-            It should be in the same folder as this
-            index.html.
-        */
-
-        const response =
-            await fetch("allGames.txt");
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Could not load allGames.txt"
-            );
-
-        }
-
-
-        const text =
-            await response.text();
-
-
-        allGames =
-            text
-                .split(/\r?\n/)
-                .map(line => line.trim())
-                .filter(line =>
-                    line &&
-                    line.toLowerCase().endsWith(".html")
-                );
-
-
-        /*
-            Remove duplicates.
-        */
-
-        allGames =
-            [...new Set(allGames)];
-
-
-        filteredGames =
-            [...allGames];
-
+        renderAlphabet();
 
         renderGames();
 
-
-    } catch (error) {
-
-        console.error(error);
-
-
-        status.innerHTML = `
-            <strong>Couldn't load the game list.</strong>
-            <br><br>
-            Make sure this index.html is inside the
-            same folder as <b>allGames.txt</b>.
-        `;
-
-    }
-
-}
-
-
-/* =========================================================
-   DISPLAY GAMES
-========================================================= */
-
-function renderGames() {
-
-    const grid =
-        document.getElementById("gameGrid");
-
-    const status =
-        document.getElementById("gameStatus");
-
-
-    grid.innerHTML = "";
-
-
-    if (filteredGames.length === 0) {
-
-        status.style.display = "block";
-
-        status.innerHTML =
-            "No games found.";
-
-        return;
+        gameSearch.focus();
 
     }
 
 
-    status.style.display = "none";
+    /* =========================================
+       CALCULATOR
+    ========================================= */
+
+    function append(value) {
+
+        if (display.value === "Error") {
+
+            display.value = "";
+
+        }
+
+        display.value += value;
+
+    }
 
 
-    const fragment =
-        document.createDocumentFragment();
+    function calculate() {
+
+        let expr =
+            display.value.trim();
+
+        if (!expr) {
+
+            return;
+
+        }
+
+        try {
+
+            expr =
+                expr
+                    .replace(/π/g, "Math.PI")
+                    .replace(/\^/g, "**")
+                    .replace(/\bsqrt\(/g, "Math.sqrt(")
+                    .replace(/\blog\(/g, "Math.log10(")
+                    .replace(/\bln\(/g, "Math.log(")
+                    .replace(/\babs\(/g, "Math.abs(")
+
+                    /*
+                     * Trig functions use degrees.
+                     */
+
+                    .replace(
+                        /\bsin\(/g,
+                        "(Math.sin(Math.PI/180*"
+                    )
+
+                    .replace(
+                        /\bcos\(/g,
+                        "(Math.cos(Math.PI/180*"
+                    )
+
+                    .replace(
+                        /\btan\(/g,
+                        "(Math.tan(Math.PI/180*"
+                    );
 
 
-    filteredGames.forEach(
-        (filename, index) => {
+            /*
+             * Only allow calculator characters.
+             */
 
-            const button =
-                document.createElement("button");
+            if (
+                !/^[0-9+\-*/().,\sA-Za-z_]*$/.test(
+                    expr.replace(/\*\*/g, "")
+                )
+            ) {
 
+                throw new Error();
 
-            button.className =
-                "game-card";
-
-
-            const number =
-                document.createElement("span");
-
-            number.className =
-                "game-number";
-
-            number.textContent =
-                index + 1;
+            }
 
 
-            const title =
-                document.createElement("span");
+            /*
+             * Prevent dangerous JavaScript words.
+             */
 
-            title.textContent =
-                cleanGameName(filename);
+            if (
+                /constructor|prototype|window|document|globalThis|Function|eval/i
+                    .test(expr)
+            ) {
+
+                throw new Error();
+
+            }
 
 
-            button.appendChild(number);
+            const result =
+                Function(
+                    '"use strict"; return (' +
+                    expr +
+                    ')'
+                )();
 
-            button.appendChild(title);
+
+            if (!Number.isFinite(result)) {
+
+                throw new Error();
+
+            }
 
 
-            button.onclick =
-                () => openGame(
-                    filename,
-                    cleanGameName(filename)
+            display.value =
+                String(
+                    Number.isInteger(result)
+                        ? result
+                        : Number(result.toPrecision(12))
                 );
 
+        }
 
-            fragment.appendChild(button);
+        catch {
+
+            display.value = "Error";
+
+        }
+
+    }
+
+
+    /* =========================================
+       CALCULATOR BUTTONS
+    ========================================= */
+
+    document
+        .querySelectorAll(".key")
+        .forEach(btn => {
+
+            btn.addEventListener(
+                "click",
+                () => {
+
+                    const action =
+                        btn.dataset.action;
+
+                    const value =
+                        btn.dataset.value;
+
+
+                    /*
+                     * Secret seven-zero code.
+                     *
+                     * Seven 0 presses within
+                     * two seconds opens Games.
+                     */
+
+                    if (value === "0") {
+
+                        const now =
+                            Date.now();
+
+                        zeroTimes =
+                            zeroTimes.filter(
+                                t =>
+                                    now - t <= 2000
+                            );
+
+                        zeroTimes.push(now);
+
+
+                        if (zeroTimes.length >= 7) {
+
+                            zeroTimes = [];
+
+                            showGames();
+
+                            return;
+
+                        }
+
+                    }
+
+
+                    if (action === "clear") {
+
+                        display.value = "";
+
+                    }
+
+                    else if (action === "delete") {
+
+                        display.value =
+                            display.value.slice(0, -1);
+
+                    }
+
+                    else if (action === "equals") {
+
+                        calculate();
+
+                    }
+
+                    else if (value) {
+
+                        append(value);
+
+                    }
+
+
+                    display.focus();
+
+                }
+            );
+
+        });
+
+
+    /* =========================================
+       KEYBOARD CALCULATOR SUPPORT
+    ========================================= */
+
+    display.addEventListener(
+        "keydown",
+        e => {
+
+            if (e.key === "Enter") {
+
+                e.preventDefault();
+
+                calculate();
+
+            }
+
+
+            if (e.key === "Escape") {
+
+                display.value = "";
+
+            }
+
+
+            if (e.key === "0") {
+
+                const now =
+                    Date.now();
+
+                zeroTimes =
+                    zeroTimes.filter(
+                        t =>
+                            now - t <= 2000
+                    );
+
+                zeroTimes.push(now);
+
+
+                if (zeroTimes.length >= 7) {
+
+                    e.preventDefault();
+
+                    zeroTimes = [];
+
+                    showGames();
+
+                }
+
+            }
 
         }
     );
 
 
-    grid.appendChild(fragment);
+    /* =========================================
+       ALPHABET / NUMBER SIDEBAR
+    ========================================= */
 
-}
+    function renderAlphabet() {
 
-
-/* =========================================================
-   GAME SEARCH
-========================================================= */
-
-document
-    .getElementById("gameSearch")
-    .addEventListener(
-        "input",
-        function() {
-
-            const query =
-                this.value
-                    .toLowerCase()
-                    .trim();
+        alphabet.innerHTML = "";
 
 
-            if (!query) {
+        const letters = [
 
-                filteredGames =
-                    [...allGames];
+            "ALL",
 
-            } else {
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
 
-                filteredGames =
-                    allGames.filter(
-                        filename => {
+            ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-                            const name =
-                                cleanGameName(
-                                    filename
-                                );
+        ];
 
-                            return (
-                                name
-                                    .toLowerCase()
-                                    .includes(query)
-                                ||
-                                filename
-                                    .toLowerCase()
-                                    .includes(query)
-                            );
 
-                        }
+        letters.forEach(letter => {
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "letter" +
+                (
+                    currentLetter === letter
+                        ? " active"
+                        : ""
+                );
+
+            button.textContent =
+                letter;
+
+
+            button.title =
+                letter === "ALL"
+                    ? "Show all games"
+                    : "Games starting with " + letter;
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    currentLetter =
+                        letter;
+
+                    renderAlphabet();
+
+                    renderGames();
+
+                }
+            );
+
+
+            alphabet.appendChild(button);
+
+        });
+
+    }
+
+
+    /* =========================================
+       RENDER GAMES
+    ========================================= */
+
+    function renderGames() {
+
+        const q =
+            gameSearch.value
+                .trim()
+                .toLowerCase();
+
+
+        currentGames =
+            allGames.filter(file => {
+
+                const name =
+                    cleanGameName(file);
+
+
+                const matchesSearch =
+                    !q ||
+                    name
+                        .toLowerCase()
+                        .includes(q) ||
+                    file
+                        .toLowerCase()
+                        .includes(q);
+
+
+                const first =
+                    name
+                        .trim()
+                        .charAt(0)
+                        .toUpperCase();
+
+
+                const matchesLetter =
+                    currentLetter === "ALL"
+                    ||
+                    first === currentLetter;
+
+
+                return (
+                    matchesSearch &&
+                    matchesLetter
+                );
+
+            });
+
+
+        gameGrid.innerHTML = "";
+
+
+        gameCount.textContent =
+            currentGames.length +
+            (
+                currentGames.length === 1
+                    ? " game"
+                    : " games"
+            );
+
+
+        if (!currentGames.length) {
+
+            gameGrid.innerHTML =
+                '<div class="empty">No games found.</div>';
+
+            return;
+
+        }
+
+
+        const fragment =
+            document.createDocumentFragment();
+
+
+        currentGames.forEach(file => {
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "gameCard";
+
+            button.textContent =
+                cleanGameName(file);
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    openGame(
+                        file,
+                        cleanGameName(file)
                     );
 
+                }
+            );
+
+
+            fragment.appendChild(button);
+
+        });
+
+
+        gameGrid.appendChild(fragment);
+
+    }
+
+
+    /* =========================================
+       LOAD GAME LIST
+    ========================================= */
+
+    async function loadGames() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "allGames.txt",
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Could not load game list"
+                );
+
             }
+
+
+            allGames =
+                [
+                    ...new Set(
+
+                        (
+                            await response.text()
+                        )
+                            .split(/\r?\n/)
+                            .map(x => x.trim())
+                            .filter(
+                                x =>
+                                    /\.html$/i.test(x)
+                            )
+
+                    )
+                ];
 
 
             renderGames();
 
         }
-    );
+
+        catch (err) {
+
+            gameCount.textContent =
+                "Game list unavailable";
 
 
-/* =========================================================
-   OPEN GAME
-========================================================= */
+            gameGrid.innerHTML =
+                `
+                <div class="empty">
+                    Could not load allGames.txt.
+                    Make sure it is beside index.html
+                    on the server.
+                </div>
+                `;
 
-function openGame(
-    filename,
-    title
-) {
-
-    currentGameFile =
-        filename;
-
-
-    const viewer =
-        document.getElementById(
-            "gameViewer"
-        );
-
-
-    const frame =
-        document.getElementById(
-            "gameFrame"
-        );
-
-
-    const titleElement =
-        document.getElementById(
-            "gameViewerTitle"
-        );
-
-
-    titleElement.textContent =
-        title;
-
-
-    /*
-        Encode the filename so spaces,
-        parentheses, etc. work correctly.
-    */
-
-    frame.src =
-        encodeURI(filename);
-
-
-    viewer.classList.add(
-        "active"
-    );
-
-
-    document.body.style.overflow =
-        "hidden";
-
-}
-
-
-/* =========================================================
-   CLOSE GAME
-========================================================= */
-
-function closeGame() {
-
-    const viewer =
-        document.getElementById(
-            "gameViewer"
-        );
-
-
-    const frame =
-        document.getElementById(
-            "gameFrame"
-        );
-
-
-    viewer.classList.remove(
-        "active"
-    );
-
-
-    /*
-        Clearing the iframe prevents
-        the game from continuing to
-        run after leaving it.
-    */
-
-    frame.src = "about:blank";
-
-
-    document.body.style.overflow =
-        "";
-
-}
-
-
-/* =========================================================
-   RELOAD GAME
-========================================================= */
-
-function reloadGame() {
-
-    const frame =
-        document.getElementById(
-            "gameFrame"
-        );
-
-
-    if (currentGameFile) {
-
-        frame.src =
-            encodeURI(
-                currentGameFile
-            );
+        }
 
     }
 
-}
 
+    /* =========================================
+       OPEN GAME
+    ========================================= */
 
-/* =========================================================
-   OPEN GAME IN NEW TAB
-========================================================= */
+    function openGame(file, title) {
 
-function openGameNewTab() {
+        viewer.classList.add("open");
 
-    if (!currentGameFile) {
-        return;
-    }
+        viewerTitle.textContent =
+            title;
 
+        gameFrame.src =
+            encodeURI(file);
 
-    window.open(
-        encodeURI(
-            currentGameFile
-        ),
-        "_blank"
-    );
-
-}
-
-
-/* =========================================================
-   FULLSCREEN
-========================================================= */
-
-function fullscreenGame() {
-
-    const frame =
-        document.getElementById(
-            "gameFrame"
-        );
-
-
-    if (
-        frame.requestFullscreen
-    ) {
-
-        frame.requestFullscreen();
+        document.body.style.overflow =
+            "hidden";
 
     }
 
-}
+
+    /* =========================================
+       CLOSE GAME
+    ========================================= */
+
+    function closeGame() {
+
+        viewer.classList.remove("open");
+
+        gameFrame.src =
+            "about:blank";
+
+        document.body.style.overflow =
+            "";
+
+    }
 
 
-/* =========================================================
-   PAGE NAVIGATION
-========================================================= */
-
-function scrollToCalculator() {
+    /* =========================================
+       GAME VIEWER BUTTONS
+    ========================================= */
 
     document
-        .getElementById(
-            "calculatorSection"
-        )
-        .scrollIntoView({
-            behavior: "smooth"
-        });
+        .getElementById("viewerBack")
+        .addEventListener(
+            "click",
+            closeGame
+        );
 
-}
-
-
-function scrollToGames() {
 
     document
-        .getElementById(
-            "gamesSection"
-        )
-        .scrollIntoView({
-            behavior: "smooth"
-        });
+        .getElementById("viewerReload")
+        .addEventListener(
+            "click",
+            () => {
 
-}
+                try {
+
+                    gameFrame
+                        .contentWindow
+                        .location
+                        .reload();
+
+                }
+
+                catch {
+
+                    gameFrame.src =
+                        gameFrame.src;
+
+                }
+
+            }
+        );
 
 
-/* =========================================================
-   ESCAPE KEY CLOSES GAME
-========================================================= */
+    document
+        .getElementById("viewerNewTab")
+        .addEventListener(
+            "click",
+            () => {
 
-document.addEventListener(
-    "keydown",
-    function(event) {
+                if (gameFrame.src) {
 
-        if (
-            event.key === "Escape"
-        ) {
+                    window.open(
+                        gameFrame.src,
+                        "_blank",
+                        "noopener"
+                    );
 
-            const viewer =
-                document.getElementById(
-                    "gameViewer"
-                );
+                }
 
+            }
+        );
+
+
+    document
+        .getElementById("viewerFullscreen")
+        .addEventListener(
+            "click",
+            async () => {
+
+                try {
+
+                    await gameFrame.requestFullscreen();
+
+                }
+
+                catch {}
+
+            }
+        );
+
+
+    /* =========================================
+       CALC BUTTON
+    ========================================= */
+
+    calcBtn.addEventListener(
+        "click",
+        showCalc
+    );
+
+
+    /* =========================================
+       GAME SEARCH
+    ========================================= */
+
+    gameSearch.addEventListener(
+        "input",
+        renderGames
+    );
+
+
+    /* =========================================
+       ESCAPE CLOSES GAME
+    ========================================= */
+
+    document.addEventListener(
+        "keydown",
+        e => {
 
             if (
-                viewer.classList.contains(
-                    "active"
-                )
+                e.key === "Escape" &&
+                viewer.classList.contains("open")
             ) {
 
                 closeGame();
@@ -1957,16 +1608,20 @@ document.addEventListener(
             }
 
         }
-
-    }
-);
+    );
 
 
-/* =========================================================
-   START
-========================================================= */
+    /* =========================================
+       STARTUP
+    ========================================= */
 
-loadGames();
+    renderAlphabet();
+
+    loadGames();
+
+    display.focus();
+
+})();
 
 </script>
 
